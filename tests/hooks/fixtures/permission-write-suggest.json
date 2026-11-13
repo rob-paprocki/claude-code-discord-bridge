@@ -1,0 +1,28 @@
+{
+  "session_id": "aa98a70a-b692-49f2-ac63-beb18981e5ec",
+  "transcript_path": "/home/user/.claude/projects/example/session.jsonl",
+  "cwd": "/home/user/projects/example",
+  "prompt_id": "f5031fd8-1b2a-4450-bcc7-6d3d1fc68ee7",
+  "permission_mode": "default",
+  "hook_event_name": "PermissionRequest",
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "/tmp/permission-test-3.txt",
+    "content": "hi"
+  },
+  "permission_suggestions": [
+    {
+      "type": "setMode",
+      "mode": "acceptEdits",
+      "destination": "session"
+    },
+    {
+      "type": "addDirectories",
+      "directories": [
+        "/tmp",
+        "/private/tmp"
+      ],
+      "destination": "session"
+    }
+  ]
+}

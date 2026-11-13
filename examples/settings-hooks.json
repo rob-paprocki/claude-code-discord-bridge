@@ -1,0 +1,66 @@
+{
+  "env": {
+    "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "100"
+  },
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/discord-bridge/bridge-hook.sh\" permission", "timeout": 86400 }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/discord-bridge/bridge-hook.sh\" question", "timeout": 86400 }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/discord-bridge/bridge-hook.sh\" handled", "timeout": 10, "async": true }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/discord-bridge/bridge-hook.sh\" stop", "timeout": 86400 },
+          { "type": "command", "command": "bash \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/discord-bridge/bridge-hook.sh\" stop-rewake", "timeout": 7200, "asyncRewake": true }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/discord-bridge/bridge-hook.sh\" prompt", "timeout": 10, "async": true }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/discord-bridge/bridge-hook.sh\" notify", "timeout": 30, "async": true }
+        ]
+      }
+    ],
+    "PermissionDenied": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/discord-bridge/bridge-hook.sh\" notify", "timeout": 30, "async": true }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "agent_needs_input|elicitation_dialog|elicitation_url_dialog|auth_storage_failure",
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/discord-bridge/bridge-hook.sh\" notify", "timeout": 30, "async": true }
+        ]
+      }
+    ]
+  }
+}

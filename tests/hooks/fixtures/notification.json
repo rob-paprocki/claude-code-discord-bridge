@@ -1,0 +1,7 @@
+{
+ "session_id": "aa98a70a-b692-49f2-ac63-beb18981e5ec",
+ "cwd": "/home/user/projects/example",
+ "hook_event_name": "Notification",
+ "notification_type": "agent_needs_input",
+ "message": "Claude needs your input"
+}

@@ -1,0 +1,15 @@
+# Private word list of blocked terms: never committed
+wordlist.local
+
+# Cloudflare and Node
+.dev.vars
+.wrangler/
+node_modules/
+
+# Machine and session state
+.claude/
+.DS_Store
+*.local
+
+# Python
+__pycache__/

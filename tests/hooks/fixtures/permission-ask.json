@@ -1,0 +1,46 @@
+{
+ "session_id": "aa98a70a-b692-49f2-ac63-beb18981e5ec",
+ "transcript_path": "/home/user/.claude/projects/example/session.jsonl",
+ "cwd": "/home/user/projects/example",
+ "prompt_id": "f5031fd8-1b2a-4450-bcc7-6d3d1fc68ee7",
+ "permission_mode": "default",
+ "effort": {
+  "level": "medium"
+ },
+ "hook_event_name": "PermissionRequest",
+ "tool_name": "AskUserQuestion",
+ "tool_input": {
+  "questions": [
+   {
+    "question": "Pick a colour",
+    "header": "Colour",
+    "options": [
+     {
+      "label": "Red",
+      "description": "The colour red"
+     },
+     {
+      "label": "Blue",
+      "description": "The colour blue"
+     }
+    ],
+    "multiSelect": false
+   },
+   {
+    "question": "Pick sizes",
+    "header": "Sizes",
+    "options": [
+     {
+      "label": "Small",
+      "description": "Small size"
+     },
+     {
+      "label": "Large",
+      "description": "Large size"
+     }
+    ],
+    "multiSelect": true
+   }
+  ]
+ }
+}

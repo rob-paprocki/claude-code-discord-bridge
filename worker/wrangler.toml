@@ -1,0 +1,17 @@
+name = "claude-code-discord-bridge"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+
+[[durable_objects.bindings]]
+name = "BRIDGE"
+class_name = "Bridge"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Bridge"]
+
+# Previews (`npx wrangler preview`) get their own Durable Object storage; the
+# binding is declared again because the code reads env.BRIDGE.
+[[previews.durable_objects.bindings]]
+name = "BRIDGE"
+class_name = "Bridge"

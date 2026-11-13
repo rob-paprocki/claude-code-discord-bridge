@@ -1,0 +1,9 @@
+flowchart LR
+  A["Claude Code hooks<br/>machine A"] -->|"1 request"| W
+  B["Claude Code hooks<br/>machine B"] -->|"1 request"| W
+  C["Claude Code hooks<br/>machine C"] -->|"1 request"| W
+  W["Worker + Durable Object<br/>your Cloudflare account"] -->|"2 DM with buttons"| D["Discord DM<br/>on your phone"]
+  D -->|"3 button press"| W
+  W -.->|"4 hook polls, gets the answer"| A
+  W -.-> B
+  W -.-> C

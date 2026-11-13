@@ -1,0 +1,2 @@
+# Your Discord bot's token; copy this file to .dev.vars (git-ignored) for wrangler dev.
+DISCORD_BOT_TOKEN=

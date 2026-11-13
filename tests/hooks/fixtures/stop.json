@@ -1,0 +1,15 @@
+{
+ "session_id": "aa98a70a-b692-49f2-ac63-beb18981e5ec",
+ "transcript_path": "/home/user/.claude/projects/example/session.jsonl",
+ "cwd": "/home/user/projects/example",
+ "prompt_id": "cb40bd11-b619-4d06-a57c-438987036bf3",
+ "permission_mode": "default",
+ "effort": {
+  "level": "medium"
+ },
+ "hook_event_name": "Stop",
+ "stop_hook_active": false,
+ "last_assistant_message": "done",
+ "background_tasks": [],
+ "session_crons": []
+}
