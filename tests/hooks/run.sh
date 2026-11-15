@@ -577,7 +577,9 @@ check "SIGTERM sends a release" "$([ "$RC" = 0 ] && [ ! -s "$T/out" ] && [ "$too
 stop_fake
 
 # --- a release that finds an answer acts on it ---
-new_case '{"post":{"status":201,"body":{"id":"r1","status":"pending"}},"gets":[{"status":200,"body":{"id":"r1","status":"pending"}},{"status":200,"body":{"id":"r1","status":"pending"}},{"status":200,"body":{"id":"r1","status":"answered","answer":{"behavior":"deny"}}}],"release":{"status":200,"body":{"status":"answered"}}}'
+# The answer shows only after the release: whether the hook releases after its first poll or its
+# second depends on where the clock's second ticks over, so the test must not count polls.
+new_case '{"post":{"status":201,"body":{"id":"r1","status":"pending"}},"gets":[{"status":200,"body":{"id":"r1","status":"pending"}}],"release":{"status":200,"body":{"status":"answered"}},"getsAfterRelease":[{"status":200,"body":{"id":"r1","status":"answered","answer":{"behavior":"deny"}}}]}'
 run_hook permission permission-bash.json BRIDGE_IDLE_CMD="echo 0"
 want='{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"deny","message":"Denied from Discord."}}}'
 check "a release answered with an answer still acts on it" "$([ "$RC" = 0 ] && [ "$(printf '%s' "$OUT" | jq -c . 2>/dev/null)" = "$want" ] && [ "$(count_log '.path=="/api/requests/r1/release"')" = 1 ]; echo $?)" "rc=$RC out=$OUT log=$(cat "$LOG")"

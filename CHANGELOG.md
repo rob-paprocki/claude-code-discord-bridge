@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-15
+
+**Upgrading:** nothing to do.
+
+### Changed
+
+- The README's license badge now reads the license from GitHub, a last-commit badge sits beside it, and the setup check table says *When it works* instead of using a check-mark emoji.
+
 ## [0.1.0] - 2026-11-13
 
 **Upgrading:** nothing to do; this is the first release.
@@ -33,3 +41,6 @@ All notable changes to this project are documented here. The format follows
 - Machines join with a code you approve in Discord, and each machine gets its own key. A join request stays open for 30 minutes, and the install script waits that long for you.
 - Remove a machine from its join DM, or with the `/machines` command.
 - `hooks/bridge-install.sh` sets a machine up (copies the hook client, merges the hook settings, joins the bridge), and `--leave` takes it out again.
+
+[Unreleased]: https://github.com/rob-paprocki/claude-code-discord-bridge/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/rob-paprocki/claude-code-discord-bridge/releases/tag/v0.1.0

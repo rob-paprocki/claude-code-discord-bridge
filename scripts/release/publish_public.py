@@ -6,7 +6,7 @@
 
 prepare makes the commit "claude-code-discord-bridge X.Y.Z" and the annotated
 tag vX.Y.Z in PUBLIC_CLONE, both authored and committed by the bot identity
-(never the owner's email), in UTC, on top of the previous release. The whole
+(never the maintainer's email), in UTC, on top of the previous release. The whole
 tree is replaced by COPY, so files deleted since the last release are deleted
 publicly too. Nothing leaves the machine.
 
@@ -26,7 +26,7 @@ Checks before anything is committed:
   * if vVERSION already exists there with the same content, there is nothing
     to prepare; with different content, the run stops;
   * the staged tree is exactly COPY: the same paths, modes and content. No
-    ignore rule (the owner's, the clone's or the copy's .gitignore) drops a file.
+    ignore rule (the maintainer's, the clone's or the copy's .gitignore) drops a file.
 
 Python 3.9 compatible (the first publish runs on Apple's /usr/bin/python3).
 """
@@ -50,7 +50,7 @@ def bot_env():
     name, email = BOT[:-1].split(" <", 1)
     return {"GIT_AUTHOR_NAME": name, "GIT_COMMITTER_NAME": name,
             "GIT_AUTHOR_EMAIL": email, "GIT_COMMITTER_EMAIL": email,
-            "TZ": "UTC"}                  # the owner's time zone stays off the public record
+            "TZ": "UTC"}                  # the maintainer's time zone stays off the public record
 
 
 def git(repo, *args, **kw):
@@ -58,7 +58,7 @@ def git(repo, *args, **kw):
     env.update(kw.get("env") or {})
     pre = []
     if kw.get("isolated"):
-        # No config-borne leak of the owner (hooks, user.*, signing, templates, trailers).
+        # No config-borne leak of the maintainer (hooks, user.*, signing, templates, trailers).
         env.update({"GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_SYSTEM": os.devnull,
                     "GIT_CONFIG_NOSYSTEM": "1"})
         pre = ["-c", "core.hooksPath=" + os.devnull, "-c", "commit.gpgsign=false",
@@ -110,7 +110,7 @@ def check_unmoved(repo, version, first_base=None):
         if not first_base:
             raise PublishError("the public repo has commits but no release tag. Check them; if "
                                "they may stay, run again with --first-base SHA (its HEAD)")
-        # Allowed only if the public repo is EXACTLY at the commit the owner acknowledged.
+        # Allowed only if the public repo is EXACTLY at the commit the maintainer acknowledged.
         if len(first_base) < 7 or not head.startswith(first_base.lower()):
             raise PublishError("the public repo is not at the acknowledged commit %s"
                                % first_base[:12])

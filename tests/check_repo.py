@@ -5,7 +5,8 @@ Checks every git-tracked file (or every file under a directory), except
 anything in private/, .git/ and node_modules/:
 
   * email addresses: only placeholders (example.com and its subdomains,
-    .invalid) and a few service addresses are allowed;
+    .invalid), the maintainer's public domain (rpaprocki.com and its subdomains)
+    and a few service addresses are allowed;
   * IPv4/IPv6 addresses: only the example network 192.168.100.0/24, loopback,
     0.0.0.0 / 255.255.255.255, the documentation ranges and a few well-known
     public resolvers;
@@ -43,6 +44,7 @@ def email_ok(addr):
     a = addr.lower()
     domain = a.split("@", 1)[1]
     return (a in ALLOWED_EMAILS or domain == "example.com" or domain.endswith(".example.com")
+            or domain == "rpaprocki.com" or domain.endswith(".rpaprocki.com")   # the maintainer's public domain
             or domain.endswith(".invalid"))
 
 
@@ -82,8 +84,8 @@ def files_in(root, strict=False):
     """The files to check. STRICT (the release build's copy, which is published as it is):
     every file under ROOT, nothing skipped."""
     if strict:
-        return [os.path.relpath(os.path.join(d, n), root) for d, _dirs, names in os.walk(root)
-                for n in names]
+        return [os.path.relpath(os.path.join(d, n), root).replace(os.sep, "/")
+                for d, _dirs, names in os.walk(root) for n in names]
     if os.path.isdir(os.path.join(root, ".git")) or os.path.isfile(os.path.join(root, ".git")):
         out = subprocess.run(["git", "-C", root, "ls-files", "-z"], capture_output=True,
                              check=True).stdout.decode()
@@ -95,7 +97,7 @@ def files_in(root, strict=False):
             # Bytecode the test run itself writes; everything else in __pycache__ is scanned.
             if os.path.basename(d) == "__pycache__" and name.endswith(".pyc"):
                 continue
-            found.append(os.path.relpath(os.path.join(d, name), root))
+            found.append(os.path.relpath(os.path.join(d, name), root).replace(os.sep, "/"))
     return found
 
 

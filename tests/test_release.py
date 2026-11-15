@@ -31,8 +31,8 @@ changelog = load("changelog", os.path.join(ROOT, "scripts", "release", "changelo
 changelog_check = load("changelog_check", os.path.join(ROOT, "scripts", "release", "changelog_check.py"))
 publish = load("publish_public", os.path.join(ROOT, "scripts", "release", "publish_public.py"))
 
-# The tests' own git calls ignore the owner's git config (signing, hooks, templates): the
-# suite also runs on the owner's Mac right before a publish.
+# The tests' own git calls ignore the maintainer's git config (signing, hooks, templates): the
+# suite also runs on the maintainer's Mac right before a publish.
 ENV = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@example.com",
            GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@example.com",
            GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1")
@@ -110,7 +110,8 @@ class PatternTests(unittest.TestCase):
 
     def test_email_allow_list_is_exact(self):
         self.assertEqual(self.kinds("41898282+github-actions[bot]@users.noreply.github.com "
-                                    "hi@rpaprocki.com git@github.com a@sub.example.com"), [])
+                                    "hi@rpaprocki.com git@github.com a@sub.example.com "
+                                    "a@rpaprocki.com a@mail.rpaprocki.com"), [])
         for addr in ("noreply" + "@github.com", "a" + "@example.org", "a" + "@example.net",
                      "someone[x]" + "@mail-provider.com"):
             self.assertEqual(self.kinds(addr), ["email address"], addr)
@@ -224,7 +225,7 @@ class BuildPublic(unittest.TestCase):
         files = build.build("HEAD", self.out(), self.pat, repo=d)
         self.assertEqual(files, ["LICENSE", "README.md"])
 
-    def test_archive_ignores_owner_git_config(self):
+    def test_archive_ignores_maintainer_git_config(self):
         # A global core.autocrlf=true makes `git archive` write CRLF; the copy must not change.
         d = make_repo({"README.md": "line one\nline two\n", "private/public-exclude.txt": "# x\n"})
         cfg = os.path.join(tempfile.mkdtemp(), "gitconfig")
@@ -614,7 +615,7 @@ class PublishPublic(unittest.TestCase):
             f.write("*.example\n*.md\n")
         gcfg = os.path.join(hostile, "gitconfig")
         with open(gcfg, "w") as f:
-            f.write("[core]\n\texcludesFile = %s\n" % excludes)
+            f.write("[core]\n\texcludesFile = %s\n" % excludes.replace("\\", "/"))
         os.makedirs(os.path.join(self.public, ".git", "info"), exist_ok=True)
         with open(os.path.join(self.public, ".git", "info", "exclude"), "a") as f:
             f.write("*.txt\n")
@@ -664,7 +665,7 @@ class PublishPublic(unittest.TestCase):
         self.assertTrue(tagger[0].endswith(" +0000"), tagger)
 
     def test_first_release_on_acknowledged_base(self):
-        self._commit_by_hand("x.txt", "owner edit\n")
+        self._commit_by_hand("x.txt", "maintainer edit\n")
         head = git(self.public, "rev-parse", "HEAD")
         with self.assertRaises(publish.PublishError):                     # wrong base
             publish.prepare(self.public, self.copy, "0.1.0", first_base="0000000")
@@ -713,7 +714,8 @@ class PublishPublic(unittest.TestCase):
         gcfg = os.path.join(hooks, "gitconfig")
         with open(gcfg, "w") as f:
             f.write("[user]\n\tname = Owner\n\temail = %s\n[core]\n\thooksPath = %s\n"
-                    "[commit]\n\ttemplate = %s\n" % (self.OWNER, hooks, tmpl))
+                    "[commit]\n\ttemplate = %s\n"
+                    % (self.OWNER, hooks.replace("\\", "/"), tmpl.replace("\\", "/")))
         old = os.environ.copy()
         os.environ.update(GIT_CONFIG_GLOBAL=gcfg, GIT_AUTHOR_NAME="Owner", GIT_AUTHOR_EMAIL=self.OWNER,
                           GIT_COMMITTER_NAME="Owner", GIT_COMMITTER_EMAIL=self.OWNER)
@@ -754,9 +756,9 @@ class PublishPublic(unittest.TestCase):
 
 
 class ReleaseRehearsal(unittest.TestCase):
-    """The first publish end to end, as on the owner's Mac: build the public copy of a small
+    """The first publish end to end, as on the maintainer's Mac: build the public copy of a small
     private repo, prepare and push it into an EMPTY public repo, then run it all again (a no-op).
-    Local bare repos only. The owner's git config is hostile on purpose."""
+    Local bare repos only. The maintainer's git config is hostile on purpose."""
 
     OWNER = "hi@rpaprocki.com"
     BOT = PublishPublic.BOT
@@ -775,7 +777,7 @@ class ReleaseRehearsal(unittest.TestCase):
             f.write("*.example\n")
         with open(os.path.join(d, "gitconfig"), "w") as f:
             f.write("[user]\n\tname = Owner\n\temail = %s\n[core]\n\thooksPath = %s\n\texcludesFile = %s\n"
-                    % (self.OWNER, d, os.path.join(d, "ignore")))
+                    % (self.OWNER, d.replace("\\", "/"), os.path.join(d, "ignore").replace("\\", "/")))
         return dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(d, "gitconfig"), TZ="XYZ-5:30")
 
     def test_first_publish_end_to_end(self):
@@ -786,7 +788,7 @@ class ReleaseRehearsal(unittest.TestCase):
             "worker/.dev.vars.example": "DISCORD_BOT_TOKEN=\n",
             ".github/workflows/cut-release.yml": "private workflow\n",
             "private/public-exclude.txt": "# never public\n.github/workflows/cut-release.yml\n",
-            "private/RELEASING.md": "owner notes\n",
+            "private/RELEASING.md": "maintainer notes\n",
         })
         os.chmod(os.path.join(private, "hooks", "hook.sh"), 0o755)
         add_commit(private, {".gitignore": "*.example\n"}, "Release 0.1.0 [no changelog]")
@@ -1010,7 +1012,7 @@ class PublicShape(unittest.TestCase):
         text = read(".github", "workflows", "cut-release.yml")
         self.assertIn("if: github.repository == 'rob-paprocki/claude-code-discord-bridge-private'", text)
         self.assertIn("github.ref == 'refs/heads/main'", text)
-        line = "BRIDGE_WORDLIST: ${{ secrets.PUBLIC_WORDLIST }}"
+        line = "BRIDGE_WORDLIST: ${{ secrets.PRIVATE_WORDLIST || secrets.PUBLIC_WORDLIST }}"
         self.assertEqual(text.count(line), 1)
         self.assertIn(" " * 10 + line, text)          # step level, not job level (6 spaces)
         self.assertNotIn(" " * 6 + line, text.replace(" " * 10 + line, ""))

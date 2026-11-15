@@ -108,7 +108,7 @@ def extract(data, out):
 
 def archive(ref, out, repo="."):
     os.makedirs(out, exist_ok=True)
-    # The owner's git config (core.autocrlf, ...) must not change the bytes of the copy.
+    # The maintainer's git config (core.autocrlf, ...) must not change the bytes of the copy.
     env = dict(os.environ, GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_SYSTEM=os.devnull,
                GIT_CONFIG_NOSYSTEM="1")
     data = subprocess.run(["git", "-C", repo, "archive", "--format=tar", ref],
@@ -138,7 +138,7 @@ def remove_private(out):
 def all_files(out):
     for d, _dirs, names in os.walk(out):
         for n in names:
-            yield os.path.relpath(os.path.join(d, n), out)
+            yield os.path.relpath(os.path.join(d, n), out).replace(os.sep, "/")
 
 
 def name_kinds(rel, patterns):
@@ -283,7 +283,7 @@ def _build(ref, out, patterns, messages, repo):
 
 
 def explain(root, wordlist_path):
-    """Local diagnosis for the owner: which word-list LINE NUMBER matches which
+    """Local diagnosis for the maintainer: which word-list LINE NUMBER matches which
     file:line. Never prints the pattern or the matched text, nor a matching file name."""
     with open(wordlist_path, encoding="utf-8-sig") as f:      # as load_wordlist: a BOM hides nothing
         lines = [(n, l.strip()) for n, l in enumerate(f, 1) if l.strip() and not l.strip().startswith("#")]

@@ -1,7 +1,9 @@
 // Fake bridge for hook client tests. Node 22, no dependencies.
 // Usage: node fake-bridge.mjs <script.json> <log.jsonl> <port-file>
-// script.json: { post: {status, body}, gets: [{status, body}, ...], release: {status, body}, stopAfterPost: bool }
-// gets are served in order; the last one repeats.
+// script.json: { post: {status, body}, gets: [{status, body}, ...], release: {status, body},
+//   getsAfterRelease: [{status, body}, ...], stopAfterPost: bool }
+// gets are served in order; the last one repeats. Once a release was answered, getsAfterRelease
+// (when given) takes over the same way, so a test need not guess how many polls come first.
 // Join routes (bridge-install.sh), each {status, body}: self (GET /api/machines/self; an array is
 // served in order, last repeats), enroll
 // (POST /api/enroll), enrollGets (GET /api/enroll/:id, in order, last repeats), enrollDelete
@@ -13,6 +15,8 @@ import fs from "node:fs";
 const [scriptFile, logFile, portFile] = process.argv.slice(2);
 const script = JSON.parse(fs.readFileSync(scriptFile, "utf8"));
 const gets = (script.gets || []).slice();
+const getsAfterRelease = (script.getsAfterRelease || []).slice();
+let released = false;
 const selfs = [].concat(script.self || []);
 const enrollGets = (script.enrollGets || []).slice();
 const post = script.post || { status: 201, body: { id: "r1", status: "pending" } };
@@ -61,11 +65,13 @@ const server = http.createServer((req, res) => {
       send(post.status, post.body);
       if (script.stopAfterPost) setTimeout(() => { server.close(); server.closeAllConnections(); }, 20);
     } else if (req.method === "GET" && /^\/api\/requests\/[^/]+$/.test(path)) {
-      const next = gets.length > 1 ? gets.shift() : gets[0];
+      const list = released && getsAfterRelease.length > 0 ? getsAfterRelease : gets;
+      const next = list.length > 1 ? list.shift() : list[0];
       const r = next || { status: 200, body: { id: "r1", status: "pending" } };
       send(r.status, r.body);
     } else if (req.method === "POST" && /^\/api\/requests\/[^/]+\/release$/.test(path)) {
       const rel = script.release || { status: 200, body: { status: "released" } };
+      if (rel.status === 200) released = true;
       send(rel.status, rel.body);
     } else if (req.method === "POST" && /^\/api\/sessions\/[^/]+\/end$/.test(path)) {
       send(200, { session: path.split("/")[3], conversation: false });

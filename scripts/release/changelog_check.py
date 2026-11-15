@@ -8,6 +8,7 @@ Commits from before this check was added are never checked, whatever BASE is.
 A commit can opt out with "[no changelog]" in its message (typos, tests,
 invisible refactors). Exit 1 if any commit is flagged.
 """
+import re
 import subprocess
 import sys
 
@@ -43,6 +44,8 @@ def flagged(base, repo=None):
     rng = ["HEAD"] + ["^" + b for b in (base, added(repo)) if b]
     out = []
     for sha in git("rev-list", "--no-merges", *rng, repo=repo).split():
+        if sha in LISTED:
+            continue
         msg = git("log", "-1", "--format=%B", sha, repo=repo)
         if "[no changelog]" in msg:
             continue
@@ -56,7 +59,65 @@ def flagged(base, repo=None):
     return out
 
 
+# Reviewed commits that went in without a CHANGELOG.md line or [no changelog]:
+# private/changelog-skip.txt, one full 40-character SHA per line, then the reason.
+# Lines that start with # are comments. The list never reaches the public copy.
+SKIP_LIST = "private/changelog-skip.txt"
+SKIP_LINE = re.compile(r"([0-9a-f]{40})[ \t]+([^#\s].*)")
+LISTED = {}
+
+
+class SkipListError(Exception):
+    """The skip list can't be used. The check fails rather than guess."""
+
+
+def in_history(sha):
+    """True if SHA is a commit that HEAD's history contains."""
+    found = subprocess.run(["git", "rev-parse", "--verify", "--quiet", sha + "^{commit}"],
+                           capture_output=True, text=True)
+    if found.returncode != 0 or found.stdout.strip() != sha:
+        return False
+    return subprocess.run(["git", "merge-base", "--is-ancestor", sha, "HEAD"],
+                          capture_output=True).returncode == 0
+
+
+def skip_list(path=SKIP_LIST):
+    """{sha: reason} from the skip list ({} when there is none)."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            lines = f.read().splitlines()
+    except FileNotFoundError:
+        return {}
+    except (OSError, UnicodeDecodeError) as error:
+        raise SkipListError("%s can't be read (%s)" % (path, error.__class__.__name__)) from None
+    listed = {}
+    for number, raw in enumerate(lines, 1):
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        where = "%s line %d" % (path, number)
+        match = SKIP_LINE.fullmatch(line)
+        if not match:
+            raise SkipListError("%s: needs a full 40-character commit SHA in lower case, then a space "
+                                "and the reason" % where)
+        sha, reason = match.groups()
+        if sha in listed:
+            raise SkipListError("%s: lists commit %s a second time" % (where, sha[:10]))
+        if not in_history(sha):
+            raise SkipListError("%s: commit %s isn't in the history of HEAD" % (where, sha[:10]))
+        listed[sha] = reason
+    return listed
+
+
 def main(argv):
+    global LISTED
+    try:
+        LISTED = skip_list()
+    except SkipListError as error:
+        print("changelog check: %s" % error)
+        return 2
+    if LISTED:
+        print("changelog check: %d reviewed commit(s) listed in %s are skipped" % (len(LISTED), SKIP_LIST))
     base = argv[1] if len(argv) > 1 else default_base()
     bad = flagged(base)
     for sha, subject, files in bad:

@@ -12,7 +12,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -28,11 +28,11 @@ jobs:
         run: python3 tests/check_repo.py
 
   python39:
-    # Rob's Mac publishes with Apple's Python 3.9, so run the scripts' tests on 3.9 too.
+    # The maintainer's Mac publishes with Apple's Python 3.9, so run the scripts' tests on 3.9 too.
     runs-on: ubuntu-latest
     container: python:3.9
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Trust the workspace (the container runs as root)
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - run: python3 --version
@@ -42,12 +42,11 @@ jobs:
         run: python3 tests/check_repo.py
 
   changelog:
-    # Only in the private development repo, and only on main: flag visible
-    # changes that have no changelog line.
-    if: github.repository == 'rob-paprocki/claude-code-discord-bridge-private' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # On pushes to main: flag visible changes that have no changelog line.
+    if: endsWith(github.repository, '-private') && github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Changelog check

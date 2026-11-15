@@ -1,4 +1,4 @@
-# Private word list of blocked terms: never committed
+# Local word list for the release checks
 wordlist.local
 
 # Cloudflare and Node

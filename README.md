@@ -5,7 +5,8 @@ Answer Claude Code from Discord. Permission prompts, questions and finished turn
 [![CI](https://github.com/rob-paprocki/claude-code-discord-bridge/actions/workflows/ci.yml/badge.svg)](https://github.com/rob-paprocki/claude-code-discord-bridge/actions/workflows/ci.yml)
 [![Latest release](https://img.shields.io/github/v/release/rob-paprocki/claude-code-discord-bridge)](https://github.com/rob-paprocki/claude-code-discord-bridge/releases/latest)
 ![Status: in development](https://img.shields.io/badge/status-in%20development-orange)
-![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)
+[![License: GPL-3.0](https://img.shields.io/github/license/rob-paprocki/claude-code-discord-bridge)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/rob-paprocki/claude-code-discord-bridge)](https://github.com/rob-paprocki/claude-code-discord-bridge/commits/main)
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/rob-paprocki/claude-code-discord-bridge/tree/main/worker)
 
@@ -94,7 +95,7 @@ The bridge needs two things from you: a Discord bot, and a Cloudflare account to
    > Discord must be able to reach the Worker. If your Cloudflare account puts `workers.dev` addresses behind Cloudflare Access (a login page), Discord gets the login page and refuses the address. Add a custom domain first: open the Worker, go to **Settings** > **Domains & Routes**, select **Add** > **Custom domain**, wait a minute for its certificate, and open the status page on that address instead.
 
 
-   | Line | ✅ means | If not |
+   | Line | When it works | If not |
    |------|---------|--------|
    | Bot token | The token works. The page shows the bot's name | Copy the token again (Bot > **Reset Token**) and update `DISCORD_BOT_TOKEN` |
    | Owner found | The Worker knows who may answer: you, as the application's owner | Set `ALLOWED_USER_IDS` (see Optional overrides) |
